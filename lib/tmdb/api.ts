@@ -13,7 +13,7 @@ type TmdbFetchOptions = {
 
 async function tmdbFetch<T>(
   path: string,
-  queryParams: Record<string, string | number | undefined>,
+  queryParams: Record<string, string | number | boolean | undefined>,
   options: TmdbFetchOptions,
 ): Promise<T> {
   const params = new URLSearchParams();
