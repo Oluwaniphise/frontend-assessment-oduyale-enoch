@@ -118,4 +118,4 @@ export function MovieDetailClient({ movieId, returnTo }: MovieDetailClientProps)
       </article>
     </main>
   );
-}
+}

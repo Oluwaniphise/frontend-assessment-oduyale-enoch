@@ -128,4 +128,4 @@ export function SearchFilters({ genres }: SearchFiltersProps) {
       </div>
     </section>
   );
-}
+}

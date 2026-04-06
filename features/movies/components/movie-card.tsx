@@ -31,7 +31,7 @@ export function MovieCard({ movie, genres, returnTo }: MovieCardProps) {
     .slice(0, 2)
     .map((genreId) => genres.find((genre) => genre.id === genreId)?.name)
     .filter(Boolean)
-    .join(" · ");
+    .join(" ï¿½ ");
 
   const posterExists = hasPoster(movie.poster_path);
 

@@ -49,4 +49,4 @@ export function Pagination({ currentPage, totalPages, buildHref }: PaginationPro
       </Link>
     </nav>
   );
-}
+}

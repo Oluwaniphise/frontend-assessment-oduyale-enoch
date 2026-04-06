@@ -22,4 +22,4 @@ export default function MovieDetailPage() {
   const returnTo = sanitizeReturnTo(searchParams.get("returnTo") ?? undefined);
 
   return <MovieDetailClient movieId={movieId} returnTo={returnTo} />;
-}
+}

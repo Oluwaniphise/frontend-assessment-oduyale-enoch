@@ -7,4 +7,4 @@ export function EmptyState() {
       </p>
     </section>
   );
-}
+}

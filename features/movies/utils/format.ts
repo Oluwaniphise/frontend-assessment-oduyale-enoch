@@ -30,4 +30,4 @@ export function formatDate(date: string): string {
     day: "numeric",
     timeZone: "UTC",
   });
-}
+}
