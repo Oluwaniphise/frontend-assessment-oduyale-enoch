@@ -1,99 +1,46 @@
 import type { MovieFilters, TMDBGenre, TMDBListResponse, TMDBMovieDetails, TMDBMovieSummary } from "@/types/tmdb";
 
-const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
-
-function getPublicToken(): string {
-  const token = process.env.NEXT_PUBLIC_TMDB_API_READ_ACCESS_TOKEN;
-  if (!token) {
-    throw new Error("NEXT_PUBLIC_TMDB_API_READ_ACCESS_TOKEN is missing.");
-  }
-
-  return token;
-}
-
-function tmdbUrl(path: string, queryParams: Record<string, string | number | undefined>): string {
+function toQueryString(filters: MovieFilters): string {
   const params = new URLSearchParams();
 
-  Object.entries(queryParams).forEach(([key, value]) => {
-    if (value === undefined || value === "") {
-      return;
-    }
+  params.set("page", String(filters.page));
 
-    params.set(key, String(value));
-  });
+  if (filters.query) {
+    params.set("q", filters.query);
+  }
 
-  return `${TMDB_API_BASE_URL}${path}?${params.toString()}`;
+  if (filters.genreId) {
+    params.set("genre", String(filters.genreId));
+  }
+
+  if (filters.year) {
+    params.set("year", String(filters.year));
+  }
+
+  return params.toString();
 }
 
-async function fetchTmdb<T>(url: string): Promise<T> {
+async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${getPublicToken()}`,
-      Accept: "application/json",
-    },
   });
 
   if (!response.ok) {
-    throw new Error(`TMDB request failed (${response.status})`);
+    throw new Error(`Request failed (${response.status})`);
   }
 
   return (await response.json()) as T;
 }
 
-function filterResultsByGenre(
-  movies: TMDBMovieSummary[],
-  genreId: number | null,
-): TMDBMovieSummary[] {
-  if (!genreId) {
-    return movies;
-  }
-
-  return movies.filter((movie) => movie.genre_ids.includes(genreId));
+export function fetchGenres(): Promise<{ genres: TMDBGenre[] }> {
+  return fetchJson<{ genres: TMDBGenre[] }>("/api/genres");
 }
 
-export async function fetchGenres(): Promise<{ genres: TMDBGenre[] }> {
-  const url = tmdbUrl("/genre/movie/list", { language: "en-US" });
-  return fetchTmdb<{ genres: TMDBGenre[] }>(url);
-}
-
-export async function fetchMovies(
-  filters: MovieFilters,
-): Promise<TMDBListResponse<TMDBMovieSummary>> {
-  if (filters.query) {
-    const searchUrl = tmdbUrl("/search/movie", {
-      query: filters.query,
-      page: filters.page,
-      year: filters.year ?? undefined,
-      include_adult: false,
-      language: "en-US",
-    });
-
-    const payload = await fetchTmdb<TMDBListResponse<TMDBMovieSummary>>(searchUrl);
-
-    return {
-      ...payload,
-      results: filterResultsByGenre(payload.results, filters.genreId),
-    };
-  }
-
-  const discoverUrl = tmdbUrl("/discover/movie", {
-    include_adult: false,
-    include_video: false,
-    language: "en-US",
-    page: filters.page,
-    sort_by: "popularity.desc",
-    with_genres: filters.genreId ?? undefined,
-    primary_release_year: filters.year ?? undefined,
-  });
-
-  return fetchTmdb<TMDBListResponse<TMDBMovieSummary>>(discoverUrl);
+export function fetchMovies(filters: MovieFilters): Promise<TMDBListResponse<TMDBMovieSummary>> {
+  const query = toQueryString(filters);
+  return fetchJson<TMDBListResponse<TMDBMovieSummary>>(`/api/movies?${query}`);
 }
 
 export function fetchMovieById(movieId: number): Promise<TMDBMovieDetails> {
-  return fetchTmdb<TMDBMovieDetails>(
-    tmdbUrl(`/movie/${movieId}`, {
-      language: "en-US",
-    }),
-  );
+  return fetchJson<TMDBMovieDetails>(`/api/movies/${movieId}`);
 }
